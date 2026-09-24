@@ -1,0 +1,34 @@
+;; What this vertical's robot physically does, declared for
+;; kotoba.robotics.process (kotoba-lang/robotics). `kbb -M:dev:physics` runs it.
+;;
+;; README "Robotics premise": a ride-inspection robot performs physical
+;; mechanical safety checks at an amusement park (ISIC 9321), gated by the
+;; Ride Safety Governor. Its physical work is climbing the maintenance
+;; walkway beside a coaster lift hill to reach the inspection points, and
+;; proof-testing sampled structural bolts whose section has been lost to
+;; corrosion.
+;;
+;; Every number without a cited source is marked `estimate` in its :basis.
+;; Replacing an estimate with a sourced value is this bot's growth work.
+{:physics/schema "itonami.physical-ai.spec.v1"
+ :repo "cloud-itonami/cloud-itonami-isic-9321"
+ :cases
+ [{:id :lift-hill-walkway-climb
+   :kind :transport
+   :procedure "tracked inspection robot climbs the lift-hill maintenance walkway to the next inspection point and stops there"
+   :params {:mass-kg 45.0 :payload-kg 10.0 :distance-m 30.0 :v-max-mps 0.5 :a-max-mps2 0.3
+            :brake-decel-mps2 0.8 :drive-force-n 450.0 :crr 0.05
+            :cog-height-m 0.30 :support-half-length-m 0.35 :payload-cog-height-m 0.55
+            :max-time-s 1800.0}
+   :sweep {:param :slope-deg :values [0.0 10.0 20.0 30.0 40.0]}
+   :quantity :min-tipover-margin
+   :limit {:min 0.3 :basis "estimate: keep 30 % of the static stability margin on the walkway incline, for grating steps and wind"}
+   :boundary {:lo 0.0 :hi 45.0}}
+  {:id :corroded-structural-bolt-proof
+   :kind :material
+   :procedure "robot proof-tests a sampled M20 class 8.8 structural bolt from the ride frame in tension, at the section left after corrosion, and records the 0.2 % offset yield load"
+   :params {:length-m 0.10 :youngs-modulus-pa 205.0e9 :yield-stress-pa 640.0e6
+            :hardening-pa 1.0e9 :density-kg-m3 7850.0 :max-force-n 200000.0}
+   :sweep {:param :area-m2 :values [2.45e-4 2.205e-4 1.96e-4 1.715e-4 1.47e-4]}
+   :quantity :yield-force-n
+   :limit {:min 120000.0 :basis "estimate: required tensile capacity of one frame bolt (design load with a load factor); 245 mm2 is the ISO 898-1 tensile stress area of M20 and 640 MPa the ISO 898-1 class 8.8 nominal yield; the sweep is 0/10/20/30/40 % section loss"}}]}
